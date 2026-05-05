@@ -32,7 +32,7 @@ const {
   MONDAY_CLIENT_SECRET,                               // required
   FRONTEND_URL      = "http://localhost:5173",        // your deployed frontend URL
   BACKEND_URL       = `http://localhost:${PORT}`,     // this server's URL
-  TOKEN_ENCRYPT_KEY = "change-this-32-char-key!!!!!", // must be 32 chars
+  ENCRYPT_KEY = "change-this-32-char-key!!!!!", // must be 32 chars
 } = process.env;
 
 const GOOGLE_REDIRECT = `${BACKEND_URL}/auth/google/callback`;
@@ -61,14 +61,14 @@ function saveTokens(tokens) {
 
 function encrypt(text) {
   const iv  = crypto.randomBytes(16);
-  const key = crypto.scryptSync(TOKEN_ENCRYPT_KEY, "salt", 32);
+  const key = crypto.scryptSync(ENCRYPT_KEY, "salt", 32);
   const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
   return iv.toString("hex") + ":" + cipher.update(text, "utf8", "hex") + cipher.final("hex");
 }
 
 function decrypt(text) {
   const [ivHex, encrypted] = text.split(":");
-  const key = crypto.scryptSync(TOKEN_ENCRYPT_KEY, "salt", 32);
+  const key = crypto.scryptSync(ENCRYPT_KEY, "salt", 32);
   const decipher = crypto.createDecipheriv("aes-256-cbc", key, Buffer.from(ivHex, "hex"));
   return decipher.update(encrypted, "hex", "utf8") + decipher.final("utf8");
 }
