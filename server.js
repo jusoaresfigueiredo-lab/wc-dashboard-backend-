@@ -1,0 +1,15 @@
+{
+  "name": "wc-dashboard-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node --watch server.js"
+  },
+  "dependencies": {
+    "cors":            "^2.8.5",
+    "express":         "^4.18.2",
+    "express-session": "^1.17.3"
+  }
+}
