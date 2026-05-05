@@ -133,8 +133,9 @@ app.use(session({
 app.get("/auth/google", (req, res) => {
   const { userId } = req.query;
   if (!userId) return res.status(400).json({ error: "userId required" });
-  req.session.pendingUserId = userId;
-  req.session.save();
+req.session.pendingUserId = userId;
+req.session.save();
+const params = new URLSearchParams({
 
   const params = new URLSearchParams({
     client_id:     GOOGLE_CLIENT_ID,
@@ -177,7 +178,9 @@ app.get("/auth/google/callback", async (req, res) => {
 app.get("/auth/monday", (req, res) => {
   const { userId } = req.query;
   if (!userId) return res.status(400).json({ error: "userId required" });
-  req.session.pendingUserId = userId;
+ req.session.pendingUserId = userId;
+ req.session.save();
+ res.redirect(`https://auth.monday.com/oauth2/authorize?${params}`);
 
   const params = new URLSearchParams({
     client_id:    MONDAY_CLIENT_ID,
