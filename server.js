@@ -134,6 +134,7 @@ app.get("/auth/google", (req, res) => {
   const { userId } = req.query;
   if (!userId) return res.status(400).json({ error: "userId required" });
   req.session.pendingUserId = userId;
+  req.session.save();
 
   const params = new URLSearchParams({
     client_id:     GOOGLE_CLIENT_ID,
