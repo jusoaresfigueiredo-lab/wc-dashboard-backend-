@@ -211,8 +211,10 @@ async function callAnthropicWithMCP(prompt, mcpServers) {
   });
   const data = await res.json();
   const raw = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
-  return JSON.parse(raw.replace(/```json|```/g, "").trim());
-}
+  console.log("RAW RESPONSE:", raw);
+  const cleaned = raw.replace(/```json|```/g, "").trim();
+  if (!cleaned) throw new Error("Empty response from Claude");
+  return JSON.parse(cleaned);
 
 function buildMCPServers(googleToken, mondayToken) {
   const servers = [];
