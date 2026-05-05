@@ -203,7 +203,7 @@ async function callAnthropicWithMCP(prompt, mcpServers) {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 1500,
+      max_tokens: 4000,
       system: "You are a team activity analyst for World Collective. Respond ONLY with valid raw JSON — no markdown, no backticks, no preamble.",
       messages: [{ role: "user", content: prompt }],
       mcp_servers: mcpServers,
