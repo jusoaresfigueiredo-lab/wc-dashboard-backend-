@@ -175,7 +175,7 @@ async function callClaude(prompt, googleToken) {
     body: JSON.stringify({
       model: "claude-opus-4-7",
       max_tokens: 4000,
-      system: "You are a team activity analyst for World Collective. Respond ONLY with valid raw JSON - no markdown, no backticks, no preamble.",
+      system: system: "You are a team activity analyst for World Collective. You MUST respond with ONLY a raw JSON object. Do not write any text before or after the JSON. Do not use markdown. Do not use backticks. Start your response with { and end with }. Any other format will cause a critical system error.",
       messages: [{ role: "user", content: prompt }],
       mcp_servers: mcpServers,
     }),
