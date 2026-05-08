@@ -182,6 +182,9 @@ async function callClaude(prompt, googleToken) {
   const data = await res.json();
   const raw = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
   const cleaned = raw.replace(/```json|```/g, "").trim();
+  console.log("STATUS:", res.status);
+  console.log("CONTENT:", JSON.stringify(data.content));
+  console.log("ERROR:", JSON.stringify(data.error));
   if (!cleaned) throw new Error("Empty response from Claude");
   return JSON.parse(cleaned);
 }
