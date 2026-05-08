@@ -30,9 +30,9 @@ const GOOGLE_SCOPES = [
   "openid", "email", "profile",
 ].join(" ");
 
-const WEEK = "April 30 - May 6, 2025";
-const WEEK_START = "2025-04-30";
-const WEEK_END = "2025-05-07";
+const WEEK = "May 1 - May 7, 2026";
+const WEEK_START = "2026-05-01";
+const WEEK_END = "2026-05-08";
 const TEAM_NAMES = "Julia F, Julia V, Julie, Ana, Jeanine, Sumit, Gul, Barbara";
 
 // ─── Token storage ─────────────────────────────────────────────────────────────
