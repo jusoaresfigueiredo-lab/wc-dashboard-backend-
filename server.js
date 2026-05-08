@@ -172,7 +172,7 @@ async function callClaude(prompt, googleToken) {
       "anthropic-beta": "mcp-client-2025-04-04",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-opus-4-7",
       max_tokens: 4000,
       system: "You are a team activity analyst for World Collective. Respond ONLY with valid raw JSON - no markdown, no backticks, no preamble.",
       messages: [{ role: "user", content: prompt }],
