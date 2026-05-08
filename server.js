@@ -170,6 +170,7 @@ async function callClaude(prompt, googleToken) {
       "x-api-key": ANTHROPIC_API_KEY,
       "anthropic-version": "2023-06-01",
       "anthropic-beta": "mcp-client-2025-04-04",
+      "anthropic-organization-id": process.env.ANTHROPIC_ORG_ID || "",
     },
     body: JSON.stringify({
       model: "claude-opus-4-7",
