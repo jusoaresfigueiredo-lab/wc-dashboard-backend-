@@ -182,8 +182,9 @@ async function callClaude(prompt, googleToken) {
   const data = await res.json();
   const raw = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
   const cleaned = raw.replace(/```json|```/g, "").trim();
-  if (!cleaned) throw new Error("Empty response from Claude");
-  return JSON.parse(cleaned);
+  if (!cleaned) {
+  console.log("FULL API RESPONSE:", JSON.stringify(data));
+  throw new Error("Empty response from Claude");
 }
 
 const WEEK = "April 30 - May 6, 2025";
