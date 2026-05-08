@@ -15,6 +15,7 @@ const {
   ANTHROPIC_API_KEY,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
+  MONDAY_API_KEY,
   FRONTEND_URL   = "http://localhost:5173",
   BACKEND_URL    = `http://localhost:${PORT}`,
   ENCRYPT_KEY    = "change-this-32-char-key!!!!!!!!",
@@ -138,12 +139,12 @@ app.get("/auth/google/callback", async (req, res) => {
 
 // Status
 app.get("/status", (req, res) => {
-  res.json({ users: getAllConnectedUsers(), week: "April 30 – May 6, 2025" });
+  res.json({ users: getAllConnectedUsers(), week: "April 30 - May 6, 2025" });
 });
 
 app.get("/status/:userId", (req, res) => {
   const { userId } = req.params;
-  res.json({ userId, hasGoogle: !!getToken(userId) });
+  res.json({ userId, hasGoogle: !!getToken(userId), hasMonday: !!MONDAY_API_KEY });
 });
 
 // Anthropic + MCP
@@ -153,6 +154,15 @@ async function callClaude(prompt, googleToken) {
     { type: "url", name: "google-calendar-mcp", url: "https://calendarmcp.googleapis.com/mcp/v1", authorization_token: googleToken.access_token },
     { type: "url", name: "google-drive-mcp", url: "https://drivemcp.googleapis.com/mcp/v1", authorization_token: googleToken.access_token },
   ];
+
+  if (MONDAY_API_KEY) {
+    mcpServers.push({
+      type: "url", name: "monday-mcp",
+      url: "https://mcp.monday.com/mcp",
+      authorization_token: MONDAY_API_KEY,
+    });
+  }
+
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -164,7 +174,7 @@ async function callClaude(prompt, googleToken) {
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4000,
-      system: "You are a team activity analyst for World Collective. Respond ONLY with valid raw JSON — no markdown, no backticks, no preamble.",
+      system: "You are a team activity analyst for World Collective. Respond ONLY with valid raw JSON - no markdown, no backticks, no preamble.",
       messages: [{ role: "user", content: prompt }],
       mcp_servers: mcpServers,
     }),
@@ -176,8 +186,8 @@ async function callClaude(prompt, googleToken) {
   return JSON.parse(cleaned);
 }
 
-const WEEK = "April 30 – May 6, 2025";
-const TEAM_NAMES = "Julia F, Julia V, Julie, Ana, Jeanine, Sumit, Gül, Barbara";
+const WEEK = "April 30 - May 6, 2025";
+const TEAM_NAMES = "Julia F, Julia V, Julie, Ana, Jeanine, Sumit, Gul, Barbara";
 
 // Data endpoints
 app.get("/data/my-week/:userId", async (req, res) => {
@@ -192,6 +202,22 @@ Search Google Calendar for meetings between April 30 and May 6 2025.
 Respond with ONLY raw JSON:
 {"emailsSent":<int>,"emailsReceived":<int>,"meetingsCount":<int>,"topThreads":[{"subject":"subject","counterpart":"who","status":"ongoing|waiting|resolved"}],"meetings":[{"title":"title","day":"Mon|Tue|Wed|Thu|Fri","attendees":"list"}],"highlight":"1 sentence biggest thing this week"}
 topThreads max 4, meetings max 5.`, token);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get("/data/team-projects", async (req, res) => {
+  if (!MONDAY_API_KEY) return res.status(401).json({ error: "monday.com not configured" });
+  const users = getAllConnectedUsers();
+  if (!users.length) return res.status(401).json({ error: "No Google account connected yet" });
+  try {
+    let token = getToken(users[0]);
+    token = await refreshGoogleToken(users[0], token);
+    const data = await callClaude(`You are reviewing World Collective's team project activity for ${WEEK}.
+Team: ${TEAM_NAMES}. Search monday.com for ALL boards updated between April 30 and May 6 2025.
+Respond with ONLY raw JSON:
+{"summary":"2-sentence overview","projects":[{"name":"board name","status":"On Track|At Risk|Blocked|Done","owner":"team member","updatedBy":"who updated","update":"1-sentence progress"}]}
+Max 8 projects.`, token);
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -218,12 +244,12 @@ app.get("/data/ai-summary", async (req, res) => {
     let token = getToken(users[0]);
     token = await refreshGoogleToken(users[0], token);
     const data = await callClaude(`You are World Collective's weekly debrief AI for the week of ${WEEK}.
-Team: ${TEAM_NAMES}. Pull from Gmail, Google Calendar, and Google Drive to build a full picture of the week.
+Team: ${TEAM_NAMES}. Pull from Gmail, Google Calendar, Google Drive${MONDAY_API_KEY ? ", and monday.com" : ""} to build a full picture of the week.
 Respond with ONLY raw JSON:
 {"headline":"6-8 word headline","overview":"3-4 sentence narrative","wins":["win 1","win 2","win 3"],"watchItems":["watch 1","watch 2"],"nextWeek":"1-2 sentences on focus for week of May 7"}
-Be specific — name real projects, suppliers, clients.`, token);
+Be specific - name real projects, suppliers, clients.`, token);
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.listen(PORT, () => console.log(`✓ WC Dashboard backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`WC Dashboard backend running on port ${PORT}`));
