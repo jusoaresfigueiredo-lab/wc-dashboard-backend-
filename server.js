@@ -30,7 +30,7 @@ const GOOGLE_SCOPES = [
   "openid", "email", "profile",
 ].join(" ");
 
-const WEEK = "May 7 - May 13, 2026";
+const WEEK = "May 7 - May 12, 2026";
 const WEEK_START = "2026-05-07";
 const WEEK_END = "2026-05-13";
 const TEAM_NAMES = "Julia F, Julia V, Julie, Ana, Jeanine, Sumit, Gul, Barbara";
@@ -100,24 +100,33 @@ async function getGmailActivity(accessToken) {
     const afterDate = Math.floor(new Date(WEEK_START).getTime() / 1000);
     const beforeDate = Math.floor(new Date(WEEK_END).getTime() / 1000);
 
-    const [sentRes, inboxRes] = await Promise.all([
-      fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=in:sent after:${afterDate} before:${beforeDate}&maxResults=20`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }),
-      fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=in:inbox after:${afterDate} before:${beforeDate}&maxResults=20`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      })
+    // Paginate to get exact counts
+    async function fetchAllMessages(query) {
+      let messages = [];
+      let pageToken = null;
+      do {
+        const url = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=500${pageToken ? "&pageToken=" + pageToken : ""}`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+        const data = await res.json();
+        if (data.messages) messages = messages.concat(data.messages);
+        pageToken = data.nextPageToken || null;
+      } while (pageToken);
+      return messages;
+    }
+
+    const [sentMessages, inboxMessages] = await Promise.all([
+      fetchAllMessages(`in:sent after:${afterDate} before:${beforeDate}`),
+      fetchAllMessages(`in:inbox after:${afterDate} before:${beforeDate}`),
     ]);
 
-    const [sentData, inboxData] = await Promise.all([sentRes.json(), inboxRes.json()]);
-    const sentCount = sentData.resultSizeEstimate || 0;
-    const inboxCount = inboxData.resultSizeEstimate || 0;
+    const sentCount = sentMessages.length;
+    const inboxCount = inboxMessages.length;
 
     // Get details of top 5 inbox messages
     const topMessages = [];
-    if (inboxData.messages && inboxData.messages.length > 0) {
+    if (inboxMessages.length > 0) {
       const msgDetails = await Promise.all(
-        inboxData.messages.slice(0, 5).map(m =>
+        inboxMessages.slice(0, 5).map(m =>
           fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From`, {
             headers: { Authorization: `Bearer ${accessToken}` }
           }).then(r => r.json())
