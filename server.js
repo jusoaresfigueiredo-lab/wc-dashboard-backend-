@@ -30,7 +30,7 @@ const GOOGLE_SCOPES = [
   "openid", "email", "profile",
 ].join(" ");
 
-const WEEK = "May 7 - May 12, 2026";
+const WEEK = "May 7 - May 13, 2026";
 const WEEK_START = "2026-05-07";
 const WEEK_END = "2026-05-13";
 const TEAM_NAMES = "Julia F, Julia V, Julie, Ana, Jeanine, Sumit, Gul, Barbara";
